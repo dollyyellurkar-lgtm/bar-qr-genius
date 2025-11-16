@@ -71,3 +71,33 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+
+
+## Admin Authentication System
+
+This project includes a comprehensive admin authentication system using Supabase Row Level Security (RLS).
+
+### Overview
+
+- **Role-Based Access Control (RBAC)**: Manage user roles and permissions
+- **Row Level Security Policies**: 5 RLS policies protect the `user_roles` table
+- **Helper Functions**: `is_admin()` and `get_user_role()` functions for easy permission checks
+- **Audit Trail**: Timestamps track when roles are created and updated
+
+### Quick Start
+
+1. Review the admin authentication documentation: [ADMIN_AUTH_SETUP.md](./ADMIN_AUTH_SETUP.md)
+2. Check the SQL migration: [supabase/migrations/20251117000000_admin_auth_setup.sql](./supabase/migrations/20251117000000_admin_auth_setup.sql)
+3. Current admin user: shamsudzahmed@gmail.com
+
+### Usage
+
+```typescript
+// Check if user is admin
+const isAdmin = await supabase.rpc('is_admin', { user_id: userId });
+
+// Get user role
+const role = await supabase.rpc('get_user_role', { user_id: userId });
+```
+
+For more details, see the [Admin Authentication Setup Guide](./ADMIN_AUTH_SETUP.md).
