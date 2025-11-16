@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Pencil, Trash2, QrCode, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import { QRCodeCanvas } from 'qrcode.react';
+import { supabase } from '@/integrations/supabase/client';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -22,15 +23,33 @@ const AdminDashboard = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem('admin_logged_in');
-    if (!isLoggedIn) {
-      navigate('/admin');
-    }
-    setItems(getMenuItems());
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        navigate('/admin');
+        return;
+      }
+
+      // Verify admin role
+      const { data: roleData } = await supabase
+        .rpc('has_role', { _user_id: session.user.id, _role: 'admin' });
+
+      if (!roleData) {
+        await supabase.auth.signOut();
+        navigate('/admin');
+        toast.error('Access denied. Admin privileges required.');
+        return;
+      }
+
+      setItems(getMenuItems());
+    };
+
+    checkAuth();
   }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('admin_logged_in');
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     navigate('/');
     toast.success('Logged out successfully');
   };
