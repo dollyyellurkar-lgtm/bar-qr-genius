@@ -15,6 +15,25 @@ const Menu = () => {
   const foodItems = items.filter(item => item.category === 'food' && item.available);
   const drinkItems = items.filter(item => item.category === 'drinks' && item.available);
 
+  const drinkSubcategories: { key: string; label: string }[] = [
+    { key: 'all', label: 'All' },
+    { key: 'cocktail', label: 'Cocktail' },
+    { key: 'mocktail', label: 'Mocktail' },
+    { key: 'beer', label: 'Beer' },
+    { key: 'wine', label: 'Wine' },
+    { key: 'whisky', label: 'Whiskey' },
+    { key: 'vodka', label: 'Vodka' },
+    { key: 'gin', label: 'Gin' },
+    { key: 'rum', label: 'Rum' },
+    { key: 'brandy', label: 'Brandy' },
+    { key: 'tequila', label: 'Tequila' },
+    { key: 'liqueur', label: 'Liqueur' },
+    { key: 'imfl', label: 'IMFL' },
+    { key: 'shots', label: 'Shots' },
+    { key: 'breezers', label: 'Breezers' },
+    { key: 'shakes', label: 'Shakes' },
+  ];
+
   const renderMenuItem = (item: MenuItem) => (
     <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-all">
       <CardHeader className="pb-3">
@@ -28,24 +47,42 @@ const Menu = () => {
         </div>
       </CardHeader>
       <CardContent>
-        {item.category === 'drinks' && item.sizes && (
+        {item.category === 'drinks' && (
           <div className="space-y-2">
-            {item.sizes['30ml'] && (
+            {item.sizes?.['30ml'] && (
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">30ml</span>
                 <Badge variant="outline">₹{item.sizes['30ml']}</Badge>
               </div>
             )}
-            {item.sizes['60ml'] && (
+            {item.sizes?.['60ml'] && (
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">60ml</span>
                 <Badge variant="outline">₹{item.sizes['60ml']}</Badge>
               </div>
             )}
-            {item.sizes['90ml'] && (
+            {item.sizes?.['90ml'] && (
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">90ml</span>
                 <Badge variant="outline">₹{item.sizes['90ml']}</Badge>
+              </div>
+            )}
+            {item.sizes?.['180ml'] && (
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">180ml</span>
+                <Badge variant="outline">₹{item.sizes['180ml']}</Badge>
+              </div>
+            )}
+            {item.glassPrice && (
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Glass</span>
+                <Badge variant="outline">₹{item.glassPrice}</Badge>
+              </div>
+            )}
+            {item.bottlePrice && (
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Bottle</span>
+                <Badge variant="outline">₹{item.bottlePrice}</Badge>
               </div>
             )}
           </div>
@@ -65,11 +102,8 @@ const Menu = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="all" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
-            <TabsTrigger value="all">
-              All Items ({foodItems.length + drinkItems.length})
-            </TabsTrigger>
+        <Tabs defaultValue="drinks" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-8">
             <TabsTrigger value="drinks">
               Drinks ({drinkItems.length})
             </TabsTrigger>
@@ -78,16 +112,27 @@ const Menu = () => {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="all" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[...foodItems, ...drinkItems].map(renderMenuItem)}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="drinks" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {drinkItems.map(renderMenuItem)}
-            </div>
+          <TabsContent value="drinks" className="space-y-8">
+            {/* Subcategory filter tabs */}
+            <Tabs defaultValue="all" className="w-full">
+              <TabsList className="flex flex-wrap gap-2 mb-6">
+                {drinkSubcategories.map(({ key, label }) => (
+                  <TabsTrigger key={key} value={key} className="capitalize">
+                    {label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              {drinkSubcategories.map(({ key }) => {
+                const group = key === 'all' ? drinkItems : drinkItems.filter((d) => d.subcategory === key);
+                return (
+                  <TabsContent key={key} value={key} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {group.map(renderMenuItem)}
+                    </div>
+                  </TabsContent>
+                );
+              })}
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="food" className="space-y-4">

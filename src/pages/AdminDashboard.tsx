@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getMenuItems, saveMenuItems } from '@/lib/storage';
+import { getMenuItems, saveMenuItems, resetMenuItems } from '@/lib/storage';
 import { MenuItem } from '@/types/menu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -80,6 +80,17 @@ const AdminDashboard = () => {
             <Button variant="outline" onClick={() => setShowQRCode(true)}>
               <QrCode className="mr-2 h-4 w-4" />
               Show QR Code
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                resetMenuItems();
+                const fresh = getMenuItems();
+                setItems(fresh);
+                toast.success('Menu reset to sample data');
+              }}
+            >
+              Reset to Sample
             </Button>
             <Button variant="outline" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
@@ -207,7 +218,10 @@ const ItemsTable = ({ items, onToggle, onEdit, onDelete }: ItemsTableProps) => (
             <div className="flex-1 grid grid-cols-3 gap-4">
               <div>
                 <p className="font-medium">{item.name}</p>
-                <p className="text-sm text-muted-foreground capitalize">{item.category}</p>
+                <p className="text-sm text-muted-foreground capitalize">
+                  {item.category}
+                  {item.category === 'drinks' && item.subcategory ? ` · ${item.subcategory}` : ''}
+                </p>
               </div>
               <div>
                 {item.category === 'food' ? (
@@ -217,6 +231,9 @@ const ItemsTable = ({ items, onToggle, onEdit, onDelete }: ItemsTableProps) => (
                     {item.sizes?.['30ml'] && <p>30ml: ₹{item.sizes['30ml']}</p>}
                     {item.sizes?.['60ml'] && <p>60ml: ₹{item.sizes['60ml']}</p>}
                     {item.sizes?.['90ml'] && <p>90ml: ₹{item.sizes['90ml']}</p>}
+                    {item.sizes?.['180ml'] && <p>180ml: ₹{item.sizes['180ml']}</p>}
+                    {item.glassPrice && <p>Glass: ₹{item.glassPrice}</p>}
+                    {item.bottlePrice && <p>Bottle: ₹{item.bottlePrice}</p>}
                   </div>
                 )}
               </div>
@@ -257,6 +274,7 @@ const ItemForm = ({ item, onSave, onCancel }: ItemFormProps) => {
       id: '',
       name: '',
       category: 'food',
+      subcategory: undefined,
       price: 0,
       available: true,
     }
@@ -314,6 +332,38 @@ const ItemForm = ({ item, onSave, onCancel }: ItemFormProps) => {
         </div>
       ) : (
         <div className="space-y-3">
+          <div className="space-y-2">
+            <Label htmlFor="subcategory">Drink Category</Label>
+            <Select
+              value={formData.subcategory || ''}
+              onValueChange={(value: string) =>
+                setFormData({ ...formData, subcategory: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select subcategory" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="beer">Beer</SelectItem>
+                <SelectItem value="imfl">IMFL</SelectItem>
+                <SelectItem value="whisky">Whisky</SelectItem>
+                <SelectItem value="rum">Rum</SelectItem>
+                <SelectItem value="vodka">Vodka</SelectItem>
+                <SelectItem value="gin">Gin</SelectItem>
+                <SelectItem value="brandy">Brandy</SelectItem>
+                <SelectItem value="wine">Wine</SelectItem>
+                <SelectItem value="cognac">Cognac</SelectItem>
+                <SelectItem value="tequila">Tequila</SelectItem>
+                <SelectItem value="mezcal">Mezcal</SelectItem>
+                <SelectItem value="liqueur">Liqueurs</SelectItem>
+                <SelectItem value="shots">Shots</SelectItem>
+                <SelectItem value="cocktail">Cocktails</SelectItem>
+                <SelectItem value="mocktail">Mocktails</SelectItem>
+                <SelectItem value="breezers">Breezers</SelectItem>
+                <SelectItem value="shakes">Shakes</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <Label>Sizes & Prices (₹)</Label>
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -361,6 +411,43 @@ const ItemForm = ({ item, onSave, onCancel }: ItemFormProps) => {
                 }
               />
             </div>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="size-180ml" className="w-16">180ml</Label>
+              <Input
+                id="size-180ml"
+                type="number"
+                placeholder="Price"
+                value={formData.sizes?.['180ml'] || ''}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    sizes: { ...formData.sizes, '180ml': Number(e.target.value) },
+                  })
+                }
+              />
+            </div>
+          </div>
+          <div className="space-y-2 pt-2">
+            <Label htmlFor="glass-price">Glass Price (₹)</Label>
+            <Input
+              id="glass-price"
+              type="number"
+              placeholder="e.g., cocktails or wine per glass"
+              value={formData.glassPrice ?? ''}
+              onChange={(e) =>
+                setFormData({ ...formData, glassPrice: Number(e.target.value) })
+              }
+            />
+            <Label htmlFor="bottle-price">Bottle Price (₹)</Label>
+            <Input
+              id="bottle-price"
+              type="number"
+              placeholder="e.g., 750ml bottle price"
+              value={formData.bottlePrice ?? ''}
+              onChange={(e) =>
+                setFormData({ ...formData, bottlePrice: Number(e.target.value) })
+              }
+            />
           </div>
         </div>
       )}
